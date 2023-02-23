@@ -4,6 +4,8 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from time import sleep
 from bs4 import BeautifulSoup
+from datetime import date, datetime
+from dateutil.relativedelta import relativedelta
 
 from constants import SECTION_XPATH_DICT, NYT
 
@@ -17,6 +19,7 @@ class InfoGetter:
         self.section = section
         self.months = months
         self.html_query = None
+        self.article_list = None
 
     def wait_until_find_xpath(self, driver, xpath):
         wait = WebDriverWait(driver, 5)
@@ -65,9 +68,15 @@ class InfoGetter:
                 article = self.nyc + link  
                 article_list.append(article)
             return article_list
+        else:
+            raise NameError
+
+    def turn_datestring_into_datelist(self, datestring:str):
+        elements = list(filter(lambda x: x != "",datestring.split("/")))
+        return elements
     
     def is_date(self, string:str):
-        elements = list(filter(lambda x: x != "",string.split("/")))
+        elements = self.turn_datestring_into_datelist(string)
         has_three_items = len(elements) == 3
         if has_three_items:
             has_correct_lengths = len(elements[0]) == 4 and len(elements[1]) == 2 and len(elements[2]) == 2
@@ -75,13 +84,44 @@ class InfoGetter:
                 return True
         return False
 
+    def filter_article_links(self):
+        new_article_list = []
+        if self.article_list:
+            for article_link in self.article_list:
+                article_date = self.get_date_from_link(article_link)
+                date_is_appropriate = self.check_if_date_is_appropriate(article_date)
+                if date_is_appropriate:
+                    new_article_list.append(article_link)
+            self.article_list = new_article_list
+            return self.article_list
+        else: 
+            raise NameError
+    
+    def check_if_date_is_appropriate(self, date):
+        today = datetime.today().date()
+        maximum_date = today - relativedelta(months=self.months)
+        if date >= maximum_date:
+            return True
+        if date < maximum_date:
+            return False
+
+    def get_date_from_link(self, link:str):
+        link = link.replace(NYT, "")
+        datestring = link[:12]
+        liststring = self.turn_datestring_into_datelist(datestring)
+        year = int(liststring[0])
+        month = int(liststring[1])
+        day = int(liststring[2])
+        article_date = date(year, month, day)
+        return article_date
+
+
 
 
 if __name__ == "__main__":
-
     getter = InfoGetter("senate", "blogs", 5)
     getter.get_query_html()
     getter
         
-
+'https://www.nytimes.com/2023/02/21/us/politics/barbara-lee-senate-california.html?searchResultPosition=1'
 

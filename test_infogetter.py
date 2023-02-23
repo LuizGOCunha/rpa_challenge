@@ -1,14 +1,16 @@
 import pytest
 import validators
 from selenium.common.exceptions import NoSuchElementException
+from datetime import date
+from dateutil import relativedelta
 
 
 from infogetter import InfoGetter
-from constants import SECTION_XPATH_DICT
+from constants import SECTION_XPATH_DICT, LINK_LIST_EXAMPLE, LINK_LIST_POSTPROCESS
 
 class TestInfoGetter:
 
-    #@pytest.mark.skip(reason="Takes too long, only test it from time to time")
+    @pytest.mark.skip(reason="Takes too long, only test it from time to time")
     def test_if_we_can_get_search_html_from_all_sections(self):
         sectionsdict = SECTION_XPATH_DICT
         for section in sectionsdict.keys():
@@ -42,6 +44,28 @@ class TestInfoGetter:
         assert list_of_articles
         for article_link in list_of_articles:
             assert validators.url(article_link), f"string is not a link: {article_link}"
+
+    def test_if_we_can_check_if_date_is_appropriate(self):
+        ig = InfoGetter(months = 120)
+        date1 = date(2020, 10, 9)
+        date2 = date(2017, 1, 12)
+        date3 = date(1900, 4, 15)
+        assert ig.check_if_date_is_appropriate(date1)
+        assert ig.check_if_date_is_appropriate(date2)
+        assert not ig.check_if_date_is_appropriate(date3)
+    
+    def test_if_we_can_get_date_from_article_link(self):
+        link = 'https://www.nytimes.com/2023/02/21/us/politics/barbara-lee-senate-california.html?searchResultPosition=1'
+        ig = InfoGetter()
+        article_date = ig.get_date_from_link(link)
+        assert article_date == date(2023, 2, 21)
+
+    def test_if_we_can_appropriately_filter_a_link_list(self):
+        ig = InfoGetter(months = 12)
+        ig.article_list = LINK_LIST_EXAMPLE
+        ig.filter_article_links()
+        assert ig.article_list == LINK_LIST_POSTPROCESS
+
     
     
 
