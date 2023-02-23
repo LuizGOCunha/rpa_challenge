@@ -33,7 +33,6 @@ def get_html_from_query(query, section):
     return html_p
 get_html_from_query(query,section)
 print("done!")
-exit()
 
 def return_html_from_url(url):
     r = requests.get(f'{url}')
