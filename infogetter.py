@@ -115,6 +115,46 @@ class InfoGetter:
         article_date = date(year, month, day)
         return article_date
 
+    def get_html_from_url(self, url):
+        driver = webdriver.Firefox()
+        driver.get(url)
+        html = driver.page_source
+        driver.close()
+        return html
+
+    def get_title_from_html(self, html):
+        bs = BeautifulSoup(html, features="lxml")
+        headers = bs.find_all("h1")
+        for header in headers:
+            if header.has_attr("data-testid"):
+                if header.attrs["data-testid"] == "headline":
+                    headline = header.text
+                    return headline
+        return None
+
+    def get_description_from_html(self, html):
+        bs = BeautifulSoup(html, features="lxml")
+        description = bs.find(id="article-summary").text
+        if description:
+            return description
+        else: 
+            return None
+
+    def get_image_link_from_html(self, html):
+        bs = BeautifulSoup(html, features="lxml")
+        picture = bs.find("picture")
+        img_source = picture.findChild("img").attrs["src"]
+        return img_source
+
+    def get_article_info_from_html(self, link):
+        html = self.get_html_from_url(link)
+
+        title = self.get_title_from_html(html)
+        date = self.get_date_from_link(link)
+        description = self.get_description_from_html(html)
+        pic_filename = self.get_image_link_from_html(html)
+        search_appearances = html.count(self.query)
+        # check if there is any amount of money
 
 
 

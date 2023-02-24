@@ -9,6 +9,9 @@ from infogetter import InfoGetter
 from constants import SECTION_XPATH_DICT, LINK_LIST_EXAMPLE, LINK_LIST_POSTPROCESS
 
 class TestInfoGetter:
+    link = 'https://www.nytimes.com/2023/02/21/us/politics/barbara-lee-senate-california.html?searchResultPosition=1'
+    with open("html_article_example.txt", "r") as file:
+        article_html = file.read()
 
     @pytest.mark.skip(reason="Takes too long, only test it from time to time")
     def test_if_we_can_get_search_html_from_all_sections(self):
@@ -66,6 +69,26 @@ class TestInfoGetter:
         ig.filter_article_links()
         assert ig.article_list == LINK_LIST_POSTPROCESS
 
+    def test_if_we_can_get_html_from_url(self):
+        ig = InfoGetter()
+        html = ig.get_html_from_url(self.link)
+        assert html
+
+    def test_if_we_can_get_title_from_html(self):
+        ig = InfoGetter()
+        title = ig.get_title_from_html(self.article_html)
+        assert title == "Barbara Lee, a Longtime Congresswoman, Is Running for Senate in California"
+    
+    def test_if_we_can_get_description_from_html(self):
+        ig = InfoGetter()
+        description = ig.get_description_from_html(self.article_html)
+        assert description == "Ms. Lee, the sole member of Congress to oppose a broad war authorization after the Sept. 11 attacks, is joining the race for Senator Dianne Feinstein’s seat."
+
+    def test_if_we_can_get_image_link_from_html(self):
+        ig = InfoGetter()
+        image_link = ig.get_image_link_from_html(self.article_html)
+        assert validators.url(image_link)
+        assert image_link == "https://static01.nyt.com/images/2023/01/13/multimedia/13pol-barbara-lee-photo-whkz/13pol-barbara-lee-photo-whkz-articleLarge.jpg?quality=75&auto=webp&disable=upscale"
     
     
 
