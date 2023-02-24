@@ -21,6 +21,7 @@ class InfoGetter:
         self.months = months
         self.html_query = None
         self.article_list = None
+        self.parsed_info = None
 
     def wait_until_find_xpath(self, driver, xpath):
         wait = WebDriverWait(driver, 5)
@@ -68,6 +69,7 @@ class InfoGetter:
             for link in links_list:
                 article = self.nyc + link  
                 article_list.append(article)
+            self.article_list = article_list
             return article_list
         else:
             raise NameError
@@ -135,8 +137,9 @@ class InfoGetter:
 
     def get_description_from_html(self, html):
         bs = BeautifulSoup(html, features="lxml")
-        description = bs.find(id="article-summary").text
+        description = bs.find(id="article-summary")
         if description:
+            description = description.text
             return description
         else: 
             return None
@@ -179,6 +182,13 @@ class InfoGetter:
             "mentions money": money_check
         }
         return article_info
+    
+    def create_info_list(self):
+        self.get_query_html()
+        self.get_list_of_articles_urls()
+        self.filter_article_links()
+        self.parsed_info = list(map(self.get_article_info_from_url, self.article_list))
+        return self.parsed_info
 
 
 if __name__ == "__main__":
