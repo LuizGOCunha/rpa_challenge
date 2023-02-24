@@ -90,5 +90,38 @@ class TestInfoGetter:
         assert validators.url(image_link)
         assert image_link == "https://static01.nyt.com/images/2023/01/13/multimedia/13pol-barbara-lee-photo-whkz/13pol-barbara-lee-photo-whkz-articleLarge.jpg?quality=75&auto=webp&disable=upscale"
     
+    def test_if_we_can_recognize_money_on_strings(self):
+        ig = InfoGetter()
+        string1 = "$123"
+        string2 = "$ 345"
+        string3 = "$ 123 assdfd"
+        string4 = "123 dollars"
+        string5 = "333 USDss"
+        string6 = "1 dollarwessa"
+        string7 = "asdasdwessa"
+        string8 = "$ sessa"
+        assert ig.check_money_on_html(string1)
+        assert ig.check_money_on_html(string2)
+        assert ig.check_money_on_html(string3)
+        assert ig.check_money_on_html(string4)
+        assert ig.check_money_on_html(string5)
+        assert ig.check_money_on_html(string6)
+        assert not ig.check_money_on_html(string7)
+        assert not ig.check_money_on_html(string8)
+
+    def test_if_we_can_get_appropriate_info(self):
+        expected_info = {
+            "url": self.link,
+            "title": "Barbara Lee, a Longtime Congresswoman, Is Running for Senate in California",
+            "date": "2023-02-21",
+            "description": "Ms. Lee, the sole member of Congress to oppose a broad war authorization after the Sept. 11 attacks, is joining the race for Senator Dianne Feinstein’s seat.",
+            "picture filename": "https://static01.nyt.com/images/2023/01/13/multimedia/13pol-barbara-lee-photo-whkz/13pol-barbara-lee-photo-whkz-articleLarge.jpg?quality=75&auto=webp&disable=upscale",
+            "search appearances": 29,
+            "mentions money": True
+        }
+        ig = InfoGetter()
+        
+        info = ig.get_article_info_from_url(self.link)
+        assert info == expected_info
     
 

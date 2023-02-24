@@ -6,6 +6,7 @@ from time import sleep
 from bs4 import BeautifulSoup
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
+import re
 
 from constants import SECTION_XPATH_DICT, NYT
 
@@ -145,8 +146,20 @@ class InfoGetter:
         picture = bs.find("picture")
         img_source = picture.findChild("img").attrs["src"]
         return img_source
+    
+    def check_money_on_html(self, html):
+        # for: number + dollar|dollars|USD
+        pattern1 = r"\d+(?:\.\d{1,2})?\s(?:dollars?|USD)"
+        # for: $ + number
+        pattern2 = r"\$\s?\d+"
+        match1 = re.search(pattern1, html)
+        match2 = re.search(pattern2, html)
+        if match1 or match2:
+            return True
+        else:
+            return False
 
-    def get_article_info_from_html(self, link):
+    def get_article_info_from_url(self, link):
         html = self.get_html_from_url(link)
 
         title = self.get_title_from_html(html)
@@ -154,8 +167,18 @@ class InfoGetter:
         description = self.get_description_from_html(html)
         pic_filename = self.get_image_link_from_html(html)
         search_appearances = html.count(self.query)
-        # check if there is any amount of money
+        money_check = self.check_money_on_html(html)
 
+        article_info = {
+            "url": link,
+            "title": title,
+            "date": date.__str__(),
+            "description": description,
+            "picture filename": pic_filename,
+            "search appearances": search_appearances,
+            "mentions money": money_check
+        }
+        return article_info
 
 
 if __name__ == "__main__":
