@@ -139,6 +139,5 @@ dmypy.json
 
 # My things
 lab.py
-html_query_example.txt
 geckodriver
 geckodriver.log
