@@ -13,7 +13,7 @@ class TestInfoGetter:
     with open("html_article_example.txt", "r") as file:
         article_html = file.read()
 
-    @pytest.mark.skip(reason="Takes too long, only test it from time to time")
+    #@pytest.mark.skip(reason="Takes too long, only test it from time to time")
     def test_if_we_can_get_search_html_from_all_sections(self):
         sectionsdict = SECTION_XPATH_DICT
         for section in sectionsdict.keys():

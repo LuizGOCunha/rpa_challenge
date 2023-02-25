@@ -141,3 +141,4 @@ dmypy.json
 lab.py
 geckodriver
 geckodriver.log
+articleinfo.xlsx

@@ -6,6 +6,7 @@ from time import sleep
 from bs4 import BeautifulSoup
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
+from openpyxl import Workbook, load_workbook
 import re
 
 from constants import SECTION_XPATH_DICT, NYT
@@ -71,8 +72,12 @@ class InfoGetter:
                 article_list.append(article)
             self.article_list = article_list
             return article_list
+        elif self.html_query is None:
+            raise ValueError("HTML Query variable not yet created")
+        elif self.html_query == "":
+            raise NameError("HTML Query is empty")
         else:
-            raise NameError
+            raise ValueError("HTML query variable is unavailable")
 
     def turn_datestring_into_datelist(self, datestring:str):
         elements = list(filter(lambda x: x != "",datestring.split("/")))
@@ -97,8 +102,12 @@ class InfoGetter:
                     new_article_list.append(article_link)
             self.article_list = new_article_list
             return self.article_list
-        else: 
-            raise NameError
+        elif self.article_list == []:
+            raise ValueError("Article list is empty")
+        elif self.article_list is None: 
+            raise NameError("Article List not yet created")
+        else:
+            raise ValueError("Article list unavailable")
     
     def check_if_date_is_appropriate(self, date):
         today = datetime.today().date()
@@ -189,6 +198,25 @@ class InfoGetter:
         self.filter_article_links()
         self.parsed_info = list(map(self.get_article_info_from_url, self.article_list))
         return self.parsed_info
+    
+    def create_info_excel(self):
+        if self.parsed_info:
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Article Info"
+
+            ws.append(['url', 'title', 'date', 'description', 'picture filename', 'search appearances', 'mentions money'])
+            for article in self.parsed_info:
+                ws.append(list(article.values()))
+
+            wb.save("articleinfo.xlsx")
+
+        elif self.parsed_info == []:
+            raise ValueError("Parsed list is empty")
+        elif self.parsed_info is None:
+            raise NameError("Parsed Info not yet created")
+        else: 
+            raise ValueError("Parsed list unavailable")
 
 
 if __name__ == "__main__":
