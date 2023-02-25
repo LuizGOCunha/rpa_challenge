@@ -142,3 +142,4 @@ lab.py
 geckodriver
 geckodriver.log
 articleinfo.xlsx
+utilities.py
