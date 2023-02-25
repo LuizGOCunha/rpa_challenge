@@ -6,7 +6,7 @@ from dateutil import relativedelta
 
 
 from infogetter import InfoGetter
-from constants import SECTION_XPATH_DICT, LINK_LIST_EXAMPLE, LINK_LIST_POSTPROCESS
+from constants import SECTION_XPATH_LIST, LINK_LIST_EXAMPLE, LINK_LIST_POSTPROCESS
 
 class TestInfoGetter:
     link = 'https://www.nytimes.com/2023/02/21/us/politics/barbara-lee-senate-california.html?searchResultPosition=1'
@@ -15,8 +15,8 @@ class TestInfoGetter:
 
     #@pytest.mark.skip(reason="Takes too long, only test it from time to time")
     def test_if_we_can_get_search_html_from_all_sections(self):
-        sectionsdict = SECTION_XPATH_DICT
-        for section in sectionsdict.keys():
+        sectionslist = SECTION_XPATH_LIST
+        for section in range(len(sectionslist)):
             ig = InfoGetter("senate", section, 1)
             try:
                 html = ig.get_query_html()

@@ -7,4 +7,4 @@ This class is responsible for returning data about new york times articles based
 Based on that it createds a dict from each article that can be acessed using the attribute .parsed_info
 
 PROBLEMS: 
-- New York Times create sections dynamically, which means my dictionary approached has been made invalid. Possible solution: Make the system separate sections by order, instead of name.
+- New York Times create sections dynamically, which means my dictionary approached has been made invalid. Solution: Altered the system to get a number instead of a string, the number is used in a list of possible sections
