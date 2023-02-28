@@ -116,7 +116,7 @@ class TestInfoGetter:
             "date": "2023-02-21",
             "description": "Ms. Lee, the sole member of Congress to oppose a broad war authorization after the Sept. 11 attacks, is joining the race for Senator Dianne Feinstein’s seat.",
             "picture filename": "https://static01.nyt.com/images/2023/01/13/multimedia/13pol-barbara-lee-photo-whkz/13pol-barbara-lee-photo-whkz-articleLarge.jpg?quality=75&auto=webp&disable=upscale",
-            "search appearances": 29,
+            "search appearances": 30,
             "mentions money": True
         }
         ig = InfoGetter()

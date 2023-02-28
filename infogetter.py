@@ -1,7 +1,5 @@
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from RPA.Browser.Selenium import Selenium
 from time import sleep
 from bs4 import BeautifulSoup
 from datetime import date, datetime
@@ -26,11 +24,13 @@ class InfoGetter:
         self.article_list = None
         self.parsed_info = None
 
+    # OBSOLETE
     def wait_until_find_xpath(self, driver:webdriver.Firefox, xpath:str) -> None:
         '''Receives a driver and an xpath, making the driver wait only the necessary time
         to find the given element'''
-        wait = WebDriverWait(driver, 5)
-        wait.until(EC.presence_of_element_located((By.XPATH, xpath)))
+        pass
+        # wait = WebDriverWait(driver, 5)
+        # wait.until(EC.presence_of_element_located((By.XPATH, xpath)))
 
     def get_list_of_possible_sections(self, ps_html:str):
         # We could create this method to get the list of possible sections, return to user and have him choose
@@ -40,34 +40,30 @@ class InfoGetter:
     def get_query_html(self) -> str:
         '''Method used to create the html_query variable (None by default). This variable corresponds to
         the page source of the query page, after one applys the query and the section appropriately'''
-        driver = webdriver.Firefox()
-        driver.get(f"https://www.nytimes.com/search?query={self.query}")
+        driver = Selenium()
+        driver.open_available_browser(f"https://www.nytimes.com/search?query={self.query}")
 
         cookie_x_path = "/html/body/div/div[2]/main/div[2]/div[1]/div/div[2]/button"
-        self.wait_until_find_xpath(driver, cookie_x_path)
-        cookie_x = driver.find_element(By.XPATH, value=cookie_x_path)
-        cookie_x.click()
+        driver.click_element(f"xpath:{cookie_x_path}")
 
         section_path = "/html/body/div/div[2]/main/div[1]/div[1]/div[2]/div/div/div[2]/div/div/button/label"
-        self.wait_until_find_xpath(driver, section_path)
+        driver.click_element(f"xpath:{section_path}")
         # return sections to user and have him choose
-        section = driver.find_element(By.XPATH, value=section_path)
-        section.click()
 
-        self.wait_until_find_xpath(driver, self.sectionlist[self.section])
-        section = driver.find_element(By.XPATH, value=self.sectionlist[self.section]) 
-        section.click()
-        html = driver.page_source
+        driver.click_element(f'xpath:{self.sectionlist[self.section]}') 
+        html = driver.get_source()
 
-        driver.close()
+        driver.close_browser()
 
         bs = BeautifulSoup(html, features="lxml")
         self.html_query = bs.prettify()
         return self.html_query
 
-    def get_list_of_articles_urls(self) -> list:
+    def get_list_of_articles_urls(self, html_query=None) -> list:
         '''returns the list of all articles present in the query page. If the html_query object variable
         was not created, will raise an error.'''
+        if html_query is not None:
+            self.html_query = html_query
         if self.html_query:
             soup = BeautifulSoup(self.html_query, features="lxml")
             anchors = soup.find_all("a")
@@ -153,10 +149,10 @@ class InfoGetter:
     def get_html_from_url(self, url:str) -> str:
         '''uses Selenium to get the html of an aticle link, quickly opening the page 
         to get the source and immediately closing it'''
-        driver = webdriver.Firefox()
-        driver.get(url)
-        html = driver.page_source
-        driver.close()
+        driver = Selenium()
+        driver.open_available_browser(url)
+        html = driver.get_source()
+        driver.close_browser()
         return html
 
     def get_title_from_html(self, html:str) -> str:
