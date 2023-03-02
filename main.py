@@ -1,5 +1,6 @@
 from RPA.Browser.Selenium import Selenium
 from RPA.HTTP import HTTP
+import re
 from selenium.webdriver.remote.webdriver import WebDriver
 from SeleniumLibrary.errors import ElementNotFound
 from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException
@@ -24,10 +25,12 @@ class InfoGetter:
         query = self.query
         r = self.request
 
-
+        # open browser
         browser.open_available_browser(f"http://www.nytimes.com/search?query={query}")
+
         # close ad
         browser.click_element('xpath://*[@id="site-content"]/div[2]/div[1]/div/div[2]/button')
+
         # click section dropdown
         browser.click_element("xpath:/html/body/div/div[2]/main/div/div[1]/div[2]/div/div/div[2]/div/div/button")
         # click sections
@@ -37,28 +40,30 @@ class InfoGetter:
             except ElementNotFound:
                 raise ValueError("Section number does not exist")
 
-        
-
-        articles = browser.find_elements('//html/body/div/div[2]/main/div[1]/div[2]/div[2]/ol/li[@data-testid="search-bodega-result"]')
-        i = 1
-
         self.adjust_date()
 
         self.expand_page()
 
-        # gather info from articles
+        article_data = self.gather_article_info()
+        return article_data
+        
+    def gather_article_info(self):
+        '''Gather data from articles if any results are present. Make sure you are in the results page
+        when running this function'''
+        r = self.request
+        results_div_id = "class:css-46b038"
+        self.browser.page_should_contain_element(results_div_id, "CurrentPage is not a Results page")
+
         articles = self.browser.find_elements('class:css-1l4w6pd')
         for article in articles:
             # Get title
             title = article.find_element('class name', 'css-2fgx4k').text
-            print("title: ", title)
 
             # Get description, if exists
             try:
                 description = article.find_element('class name', 'css-16nhkrn').text
             except ElementNotFound:
                 description = None
-            print("description: ", description)
 
             # Get image name, if exists
             try:
@@ -70,7 +75,6 @@ class InfoGetter:
             if image_url is not None:
                 image_name = image_url.split("/")[-1]
                 i = r.download(image_url, target_file=f"images/{image_name}")
-                print("image name: ", image_name)
 
             # Count how many times the query appear in title and description
             nrm_query = self.query.lower()
@@ -79,20 +83,25 @@ class InfoGetter:
             if description is not None:
                 nrm_description = description.lower()
                 count += nrm_description.count(nrm_query)
-            print("count: ", count)
+
+            # Check if the title or description mentions money
+            if description is not None:
+                money_check = self.check_money_on_string(title) or self.check_money_on_string(description)
+            else:
+                money_check = self.check_money_on_string(title)
 
             # Put all data into one dictionary
-            if self.article_data is None:
-                self.article_data = []
-            self.article_data.append({
+            article_data = []
+            article_data.append({
                 'title': title,
                 'description': description,
                 'image': image_name,
                 'query count': count,
-                # mentions money: bool
+                'mentions money': money_check
             })
-        print(self.article_data)
-        breakpoint()
+            print(f"Article Processed: {title}")
+        self.article_data = article_data
+        return article_data
 
 
 
@@ -132,5 +141,21 @@ class InfoGetter:
         # close date range
         self.browser.click_button("xpath:/html/body/div/div[2]/main/div/div[1]/div[2]/div/div/div[1]/div/div/button")
 
-ig = InfoGetter()
-ig.retrieve_info()
+    def check_money_on_string(self, string:str) -> bool:
+        '''check if inside the article exists a pattern that matches probable ways
+        of referring to money in dollars, returning a boolean based on that'''
+        # for: number + dollar|dollars|USD
+        pattern1 = r"\d+(?:\.\d{1,2})?\s(?:dollars?|USD)"
+        # for: $ + number
+        pattern2 = r"\$\s?\d+"
+        match1 = re.search(pattern1, string)
+        match2 = re.search(pattern2, string)
+        if match1 or match2:
+            return True
+        else:
+            return False
+
+if __name__ == "__main__":
+    ig = InfoGetter()
+    v = ig.retrieve_info()
+    print("data: ", v)
