@@ -1,5 +1,6 @@
 from RPA.Browser.Selenium import Selenium
 from RPA.HTTP import HTTP
+from RPA.Excel.Files import Files
 import re
 from selenium.webdriver.remote.webdriver import WebDriver
 from SeleniumLibrary.errors import ElementNotFound
@@ -11,8 +12,16 @@ from datetime import date
 class InfoGetter:
     browser = Selenium()
     request = HTTP()
+    excel = Files()
     browser.auto_close = False
-    article_data = None
+    article_data = {
+                'title': [],
+                'date': [],
+                'description': [],
+                'image': [],
+                'query count': [],
+                'mentions money': []
+            }
 
     def __init__(self, query="senate",section_numbers:list=[3,6,8], months_ago=1) -> None:
         self.months_ago = months_ago
@@ -29,10 +38,10 @@ class InfoGetter:
         browser.open_available_browser(f"http://www.nytimes.com/search?query={query}")
 
         # close ad
-        browser.click_element('xpath://*[@id="site-content"]/div[2]/div[1]/div/div[2]/button')
+        browser.click_element('class:css-1qw5f1g')
 
         # click section dropdown
-        browser.click_element("xpath:/html/body/div/div[2]/main/div/div[1]/div[2]/div/div/div[2]/div/div/button")
+        browser.click_element("class:css-4d08fs")
         # click sections
         for sn in section_numbers:
             try:
@@ -45,6 +54,7 @@ class InfoGetter:
         self.expand_page()
 
         article_data = self.gather_article_info()
+
         return article_data
         
     def gather_article_info(self):
@@ -64,6 +74,10 @@ class InfoGetter:
                 description = article.find_element('class name', 'css-16nhkrn').text
             except ElementNotFound:
                 description = None
+
+            # Get date
+            date_element = article.find_element('class name', 'css-17ubb9w')
+            date = date_element.text
 
             # Get image name, if exists
             try:
@@ -90,19 +104,35 @@ class InfoGetter:
             else:
                 money_check = self.check_money_on_string(title)
 
-            # Put all data into one dictionary
-            article_data = []
-            article_data.append({
-                'title': title,
-                'description': description,
-                'image': image_name,
-                'query count': count,
-                'mentions money': money_check
-            })
-            print(f"Article Processed: {title}")
-        self.article_data = article_data
-        return article_data
+            # Put all data into the dictionary
+            self.article_data['title'].append(title)
+            self.article_data['date'].append(date)
+            self.article_data['description'].append(description)
+            self.article_data['image'].append(image_name)
+            self.article_data['query count'].append(count)
+            self.article_data['mentions money'].append(money_check)
+            print(f"Article Added: {title}")
 
+        # Add to excel worksheet
+        self.save_article_data_to_workbook()
+
+        self.browser.close_browser()
+        return self.article_data
+
+    @property
+    def search(self):
+        section_numbers = f"{self.section_numbers}".replace("[", "|")
+        section_numbers = f"{section_numbers}".replace("]", "|")
+        return f"{self.query}{section_numbers}{self.months_ago}"
+    
+    def save_article_data_to_workbook(self):
+        has_data =  all(self.article_data.values())
+        if has_data:
+            workbook = self.excel.create_workbook("./article_data.xlsx", sheet_name=self.search)
+            self.excel.append_rows_to_worksheet(self.article_data, header=True)
+            workbook.save()
+        else:
+            ValueError("Article data has not been gathered yet")
 
 
     def expand_page(self):
