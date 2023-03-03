@@ -24,4 +24,4 @@ lab.py
 utilities.py
 images/
 article_data.xlsx
-data/
+data/*
