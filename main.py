@@ -86,6 +86,7 @@ class InfoGetter:
                 image_url = image_url.split("?")[0]
             except (ElementNotFound, NoSuchElementException):
                 image_url = None
+                image_name = None
             if image_url is not None:
                 image_name = image_url.split("/")[-1]
                 i = r.download(image_url, target_file=f"images/{image_name}")
