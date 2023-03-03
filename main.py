@@ -9,7 +9,9 @@ from selenium.common.exceptions import StaleElementReferenceException, NoSuchEle
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
-from typing import Union, Tuple
+from time import sleep
+
+from typing import Union, Tuple, List, Dict, Any
 
 import re
 
@@ -28,7 +30,7 @@ class InfoGetter:
                 'mentions money': []
             }
 
-    def __init__(self, query="senate",section_numbers:list=[3,6,8], months_ago=1) -> None:
+    def __init__(self, query:str="government",section_numbers:list=[2,], months_ago:int=1) -> None:
         self.months_ago = months_ago
         self.section_numbers = section_numbers
         self.query = query
@@ -38,10 +40,8 @@ class InfoGetter:
         section_numbers = self.section_numbers
         query = self.query
 
-        #get formatted start date
-        start_date, end_date = self.get_dates()
         # open browser
-        browser.open_available_browser(f"http://www.nytimes.com/search?query={query}&startDate={start_date}&endDate={end_date}")
+        browser.open_available_browser(f"http://www.nytimes.com/search?query={query}")
 
         # close ad
         browser.click_element('class:css-1qw5f1g')
@@ -55,7 +55,7 @@ class InfoGetter:
             except ElementNotFound:
                 raise ValueError("Section number does not exist")
 
-        #self.adjust_date()
+        self.adjust_date()
 
         self.expand_page()
 
@@ -110,8 +110,8 @@ class InfoGetter:
             )
 
         # Add to excel worksheet
-        self.save_article_data_to_workbook()
-
+        self.save_article_data_to_workbook(self.article_data)
+        breakpoint()
         self.browser.close_browser()
         return self.article_data
     
@@ -186,18 +186,36 @@ class InfoGetter:
         print(f"Article Added: {title}")
 
     @property
-    def search(self) -> str:
+    def search_terms(self) -> str:
         section_numbers = f"{self.section_numbers}".replace("[", "|")
         section_numbers = f"{section_numbers}".replace("]", "|")
         return f"{self.query}{section_numbers}{self.months_ago}"
     
     # NEEDS TO BE MORE DYNAMIC, FIX IT!
-    def save_article_data_to_workbook(self):
+    def save_article_data_to_workbook(self, data:List[Dict[str, Any]]):
+        excel = self.excel
         has_data =  all(self.article_data.values())
+        today = date.today().strftime('%Y-%m-%d')
+        path = f"./data/{today}.xlsx"
+        title = self.search_terms
         if has_data:
-            workbook = self.excel.create_workbook("./article_data.xlsx", sheet_name=self.search)
-            self.excel.append_rows_to_worksheet(self.article_data, header=True)
-            workbook.save()
+            try:
+                # Case of WB exists and WS exists
+                workbook = excel.open_workbook(path)
+                # Reset worksheet
+                excel.remove_worksheet(title)
+                excel.create_worksheet(title)
+            except FileNotFoundError:
+                # Case of WB not existing
+                workbook = excel.create_workbook(path, sheet_name=title)
+            except (ValueError, KeyError):
+                # Case of WS not existing
+                workbook = excel.open_workbook(path)
+                workbook.create_worksheet(title)
+            finally:
+                excel.append_rows_to_worksheet(data, header=True)
+                workbook.save()
+                workbook.close()
         else:
             ValueError("Article data has not been gathered yet")
 
@@ -205,6 +223,7 @@ class InfoGetter:
     def expand_page(self):
         showmore_locator = 'xpath:/html/body/div/div[2]/main/div/div[2]/div[3]/div/button'
         while True:
+            
             try:
                 self.browser.click_button(showmore_locator)
             except (ElementNotFound, StaleElementReferenceException):
