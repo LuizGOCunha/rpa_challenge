@@ -30,7 +30,7 @@ class InfoGetter:
                 'mentions money': []
             }
 
-    def __init__(self, query:str="government",section_numbers:list=[2,], months_ago:int=1) -> None:
+    def __init__(self, query:str="usa",section_numbers:list=[3,], months_ago:int=1) -> None:
         self.months_ago = months_ago
         self.section_numbers = section_numbers
         self.query = query
@@ -39,9 +39,11 @@ class InfoGetter:
         browser = self.browser
         section_numbers = self.section_numbers
         query = self.query
+        start_date, today = self.get_dates()
+        "http://www.nytimes.com/search?query={query}&endDate={today}&startDate={start_date}"
 
         # open browser
-        browser.open_available_browser(f"http://www.nytimes.com/search?query={query}")
+        browser.open_available_browser(f"http://www.nytimes.com/search?query={query}&endDate={today}&startDate={start_date}")
 
         # close ad
         browser.click_element('class:css-1qw5f1g')
@@ -55,7 +57,7 @@ class InfoGetter:
             except ElementNotFound:
                 raise ValueError("Section number does not exist")
 
-        self.adjust_date()
+        # self.adjust_date()
 
         self.expand_page()
 
@@ -69,7 +71,8 @@ class InfoGetter:
         r = self.request
         results_div_id = "class:css-46b038"
         self.browser.page_should_contain_element(results_div_id, "CurrentPage is not a Results page")
-
+        # The page needs a moment to update the searches
+        sleep(1)
         articles = self.browser.find_elements('class:css-1l4w6pd')
         for article in articles:
             # Get title
@@ -221,11 +224,13 @@ class InfoGetter:
 
 
     def expand_page(self):
-        showmore_locator = 'xpath:/html/body/div/div[2]/main/div/div[2]/div[3]/div/button'
+        showmore_locator = 'xpath:/html/body/div/div[2]/main/div/div[2]/div[2]/div/button'
         while True:
             
             try:
-                self.browser.click_button(showmore_locator)
+                # If expansion is too quick it can duplicate articles
+                sleep(2)
+                self.browser.click_button(showmore_locator)               
             except (ElementNotFound, StaleElementReferenceException):
                 break
     
@@ -256,7 +261,7 @@ class InfoGetter:
         self.find_and_click_today()
 
         # close date range
-        self.browser.click_button("class:css-p5555t")
+        #self.browser.click_button("class:css-p5555t")
 
     def check_money_on_string(self, string:str) -> bool:
         '''check if inside the article exists a pattern that matches probable ways
