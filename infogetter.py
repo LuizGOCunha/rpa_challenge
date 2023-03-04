@@ -38,7 +38,7 @@ class InfoGetter:
                 'mentions money': []
             }
 
-    def __init__(self, query:str="usa",sections:List[Section]=[Section.ARTS,Section.TRAVEL], months_ago:int=1) -> None:
+    def __init__(self, query:str="mexico",sections:List[Section]=[Section.ARTS,], months_ago:int=1) -> None:
         self.months_ago = months_ago
         self.sections = sections
         self.query = query
