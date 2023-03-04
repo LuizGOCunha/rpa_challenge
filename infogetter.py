@@ -1,6 +1,7 @@
 from RPA.Browser.Selenium import Selenium
 from RPA.HTTP import HTTP
 from RPA.Excel.Files import Files
+from RPA.FileSystem import FileSystem
 
 from selenium.webdriver.remote.webelement import WebElement
 from SeleniumLibrary.errors import ElementNotFound
@@ -26,6 +27,7 @@ class InfoGetter:
     browser = Selenium()
     request = HTTP()
     excel = Files()
+    fs = FileSystem()
     browser.auto_close = True
     article_data = {
                 'title': [],
@@ -182,6 +184,7 @@ class InfoGetter:
     def donwload_image(self, image_url:str, image_name:str):
         '''checks if both image_url and image_name are not None, then downloads to the 
         following directory: ./images/{image_name}'''
+        self.fs.create_directory("./images")
         if image_url and image_name is not None:
             self.request.download(image_url, target_file=f"images/{image_name}")
     
@@ -245,6 +248,8 @@ class InfoGetter:
         has_data =  all(self.article_data.values())
         today = date.today().strftime('%Y-%m-%d')
         path = f"./data/{today}.xlsx"
+        # Create directory (If exists, proceed without error)
+        self.fs.create_directory('./data')
         title = self.search_terms
         if has_data:
             try:
