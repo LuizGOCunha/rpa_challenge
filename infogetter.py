@@ -16,7 +16,13 @@ from typing import Union, Tuple, List, Dict, Any
 
 import re
 
+import os
+
 from section import Section
+
+QUERY = os.environ.get('QUERY', 'mexico')
+SECTIONS = os.environ.get('SECTIONS', [Section.HOME, Section.STYLE])
+MONTHS_AGO = os.environ.get('MONTHS_AGO', 1)
 
 
 class InfoGetter:
@@ -38,7 +44,7 @@ class InfoGetter:
                 'mentions money': []
             }
 
-    def __init__(self, query:str="mexico",sections:List[Section]=[Section.ARTS,], months_ago:int=1) -> None:
+    def __init__(self, query:str=QUERY,sections:List[str]=SECTIONS, months_ago:int=MONTHS_AGO) -> None:
         self.months_ago = months_ago
         self.sections = sections
         self.query = query
