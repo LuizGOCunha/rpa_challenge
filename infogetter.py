@@ -340,7 +340,3 @@ class InfoGetter:
         else:
             return False
 
-if __name__ == "__main__":
-    ig = InfoGetter()
-    v = ig.retrieve_info()
-    print("data: ", v)
