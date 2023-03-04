@@ -1,9 +1,12 @@
-"""Template robot with Python."""
+from infogetter import InfoGetter
+from section import Section
 
 
-def minimal_task():
-    print("Done.")
+
+def main():
+    ig = InfoGetter()
+    ig.retrieve_info()
 
 
 if __name__ == "__main__":
-    minimal_task()
+    main()

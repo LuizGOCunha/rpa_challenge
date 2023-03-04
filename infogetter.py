@@ -15,6 +15,8 @@ from typing import Union, Tuple, List, Dict, Any
 
 import re
 
+from section import Section
+
 
 class InfoGetter:
     '''Class created for the means of facilitating the search, parsing and data storage of a number
@@ -34,44 +36,45 @@ class InfoGetter:
                 'mentions money': []
             }
 
-    def __init__(self, query:str="mexico",section_numbers:list=[3,], months_ago:int=1) -> None:
+    def __init__(self, query:str="usa",sections:List[Section]=[Section.ARTS,Section.TRAVEL], months_ago:int=1) -> None:
         self.months_ago = months_ago
-        self.section_numbers = section_numbers
+        self.sections = sections
         self.query = query
 
     def retrieve_info(self):
         '''Main method of the InfoGetter class. Initiates the process of gathering information
-        base on the variables that are given. If no variables are given, initiate search based on
+        base on the variables that are given. If no variables are given on class initiation, start search based on
         default values.'''
         browser = self.browser
-        section_numbers = self.section_numbers
         query = self.query
         start_date, today = self.get_dates()
-        "http://www.nytimes.com/search?query={query}&endDate={today}&startDate={start_date}"
+        url = f"http://www.nytimes.com/search?query={query}&endDate={today}&startDate={start_date}"
+
+        # add sections to url
+        url = self.add_sections_to_url(url)
 
         # open browser
-        browser.open_available_browser(f"http://www.nytimes.com/search?query={query}&endDate={today}&startDate={start_date}")
+        browser.open_available_browser(url)
 
         # close ad
         browser.click_element('class:css-1qw5f1g')
 
-        # click section dropdown
-        browser.click_element("class:css-4d08fs")
-        # click sections
-        for sn in section_numbers:
-            try:
-                browser.click_element(f"xpath:/html/body/div/div[2]/main/div/div[1]/div[2]/div/div/div[2]/div/div/div/ul/li[{sn}]/label/input")
-            except ElementNotFound:
-                raise ValueError("Section number does not exist")
-            
-        browser.click_element("class:css-4d08fs")
-
-        # self.adjust_date()
+        # click 'see more'
         self.expand_page()
 
+        # get article information from search results
         article_data = self.gather_article_info()
 
         return article_data
+    
+    def add_sections_to_url(self, url:str) -> str:
+        section_args = '&sections='
+        for section in self.sections:
+            section_args += section
+            section_args += Section.SEP
+        section_args = section_args[:-3]
+        url += section_args
+        return url
         
     def gather_article_info(self):
         '''Gather data from articles if any results are present. Make sure you are in the results page
@@ -224,10 +227,12 @@ class InfoGetter:
     @property
     def search_terms(self) -> str:
         '''Property that returns a string that can be used to classify a given search.
-        String returns query, section_numbers and months_ago, separated by a "|" character.'''
-        section_numbers = f"{self.section_numbers}".replace("[", "|")
-        section_numbers = f"{section_numbers}".replace("]", "|")
-        return f"{self.query}{section_numbers}{self.months_ago}"
+        String returns query, sections and months_ago, separated by a "|" character.'''
+        sections_str = ''
+        for section in self.sections:
+            section = section.split('%')[0]
+            sections_str += section
+        return f"{self.query}|{sections_str}|{self.months_ago}"
 
     def save_article_data_to_workbook(self, data:List[Dict[str, Any]]):
         '''Method that can be used to save all data present in the article_data attribute, if

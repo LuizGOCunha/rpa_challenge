@@ -22,6 +22,6 @@ geckodriver
 geckodriver.log
 lab.py
 utilities.py
-images/
+images/*
 article_data.xlsx
 data/*
