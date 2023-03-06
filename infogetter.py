@@ -72,7 +72,8 @@ class InfoGetter:
 
         # get article information from search results
         article_data = self.gather_article_info()
-
+        
+        print("***DONE!***")
         return article_data
     
     def add_sections_to_url(self, url:str) -> str:
@@ -193,6 +194,7 @@ class InfoGetter:
         self.fs.create_directory("./images")
         if image_url and image_name is not None:
             self.request.download(image_url, target_file=f"images/{image_name}")
+            print(f"Image downloaded: {image_name}")
     
     def count_query_appearances(self, title:str, description:Union[str, None]) -> int:
         '''Searches for appearances of query attribute in title and description (if available).
@@ -275,6 +277,7 @@ class InfoGetter:
                 excel.append_rows_to_worksheet(data, header=True)
                 workbook.save()
                 workbook.close()
+                print("File with article data produced successfully.")
         else:
             ValueError("Article data has not been gathered yet")
 
