@@ -190,10 +190,10 @@ class InfoGetter:
 
     def donwload_image(self, image_url:str, image_name:str):
         '''checks if both image_url and image_name are not None, then downloads to the 
-        following directory: ./images/{image_name}'''
-        self.fs.create_directory("./images")
+        following directory: ./output/{image_name}'''
+        self.fs.create_directory("./output")
         if image_url and image_name is not None:
-            self.request.download(image_url, target_file=f"images/{image_name}")
+            self.request.download(image_url, target_file=f"output/{image_name}")
             print(f"Image downloaded: {image_name}")
     
     def count_query_appearances(self, title:str, description:Union[str, None]) -> int:
@@ -247,17 +247,17 @@ class InfoGetter:
 
     def save_article_data_to_workbook(self, data:List[Dict[str, Any]]):
         '''Method that can be used to save all data present in the article_data attribute, if
-        it has any data in it. Saves it in the a directory called data, using the current date 
-        as filename, and the search_terms property as sheet name: "./data/{today}.xlsx"
+        it has any data in it. Saves it in the a directory called output, using the current date 
+        as filename, and the search_terms property as sheet name: "./output/{today}.xlsx"
         If document and sheet already exists: resets the sheet inside document.
         If document exists and sheet doesn't: creates a sheet with appropriate name.
         If neither document or sheet exists: creates a document and sheet with appropriate names.'''
         excel = self.excel
         has_data =  all(self.article_data.values())
         today = date.today().strftime('%Y-%m-%d')
-        path = f"./data/{today}.xlsx"
+        path = f"./output/{today}.xlsx"
         # Create directory (If exists, proceed without error)
-        self.fs.create_directory('./data')
+        self.fs.create_directory('./output')
         title = self.search_terms
         if has_data:
             try:
