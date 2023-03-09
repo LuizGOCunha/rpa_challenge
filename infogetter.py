@@ -19,9 +19,14 @@ import re
 import os
 
 from section import Section
+from constants import SECTIONS_DICT
 
 QUERY = os.environ.get('QUERY', 'mexico')
-SECTIONS = os.environ.get('SECTIONS', [Section.HOME, Section.STYLE])
+
+# Adjustment made to make the design more human friendly
+SECTION_KEYS = os.environ.get('SECTIONS', ['home', 'style', 'us'])
+SECTIONS = [SECTIONS_DICT[key] for key in SECTION_KEYS]
+
 MONTHS_AGO = os.environ.get('MONTHS_AGO', 1)
 
 
