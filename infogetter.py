@@ -24,7 +24,7 @@ from constants import SECTIONS_DICT
 QUERY = os.environ.get('QUERY', 'good')
 
 # Adjustment made to make the design more human friendly
-SECTION_KEYS = os.environ.get('SECTIONS', list(SECTIONS_DICT.keys()))
+SECTION_KEYS = os.environ.get('SECTIONS', ['us', 'home'])
 SECTIONS = [SECTIONS_DICT[key] for key in SECTION_KEYS]
 
 MONTHS_AGO = os.environ.get('MONTHS_AGO', 1)
