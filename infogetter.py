@@ -137,14 +137,13 @@ class InfoGetter:
             money_check = self.check_money_appearance(title, description)
 
             # We check if we have too many files already (Rocoborp cloud has a limit of 50 files)
-            # We check for 49 because we need space for the xlsx file
-            if len(self.article_data["title"]) < 49:
+            if len(self.article_data["title"]) < 47:
                 # Put all data into the dictionary
                 self.add_to_article_data(
                     title, date, description, image_name, count, money_check
                 )
             else:
-                print("limit of 50 files achieved")
+                print("limit of files achieved")
                 break
 
         # Add to excel worksheet
